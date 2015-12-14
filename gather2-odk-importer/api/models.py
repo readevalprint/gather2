@@ -2,7 +2,10 @@ from django.db import models
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 
+from pyxform.xform2json import create_survey_element_from_xml
+
 from hashlib import md5
+import unicodedata
 
 
 class XForm(models.Model):
@@ -59,3 +62,10 @@ class XForm(models.Model):
     def is_crowd_form(self):
         # TODO make this a model member
         return False
+
+    @property
+    def json_data(self):
+        survey = create_survey_element_from_xml(
+            self.xml_data.encode('ascii', 'ignore')
+        )
+        return survey.to_json()

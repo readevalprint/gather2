@@ -150,3 +150,33 @@ class XFormXMLView(View):
         )
         response['X-OpenRosa-Version'] = '1.0'
         return response
+
+
+class XFormJSONView(View):
+
+    """
+    Return an XForm in JSON format
+    """
+
+    http_method_names = ["get", ]
+
+    def get(self, *args, **kwargs):
+        username = kwargs.get("username")
+
+        if not AuthService().authorise(username='test', password='test'):
+            return HttpResponseNotAuthorised()
+
+        pk = kwargs.get("pk")
+
+        xform = get_object_or_404(
+            XForm,
+            username=username,
+            pk=pk
+        )
+
+        response = HttpResponse(
+            xform.json_data,
+            content_type="application/json"
+        )
+        response['X-OpenRosa-Version'] = '1.0'
+        return response
