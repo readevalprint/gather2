@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -x
 
 
 # Define help message
@@ -16,7 +17,7 @@ show_help() {
 
 setup_local_db() {
     set +e
-    cd /code/gather2-core/
+    cd /code/
     /var/env/bin/python manage.py sqlcreate | psql -U $RDS_USERNAME -h $RDS_HOSTNAME
     set -e
     /var/env/bin/python manage.py migrate
@@ -24,14 +25,14 @@ setup_local_db() {
 
 setup_prod_db() {
     set +e
-    cd /code/gather2-core/
+    cd /code/
     set -e
     /var/env/bin/python manage.py migrate
 }
 
 case "$1" in
     manage )
-        cd /code/gather2-core/
+        cd /code/
         /var/env/bin/python manage.py "${@:2}"
     ;;
     setuplocaldb )
@@ -42,7 +43,7 @@ case "$1" in
     ;;
     test_coverage)
         source /var/env/bin/activate
-        coverage run --rcfile="/code/.coveragerc" /code/gather2-core/manage.py test core
+        coverage run --rcfile="/code/.coveragerc" /code/manage.py test core
         mkdir /var/annotated
         coverage annotate --rcfile="/code/.coveragerc"
         coverage report --rcfile="/code/.coveragerc"
@@ -57,13 +58,16 @@ case "$1" in
 EOF
     ;;
     start )
-        cd /code/gather2-core/
+        cd /code/
         /var/env/bin/python manage.py collectstatic --noinput
         /usr/local/bin/supervisord -c /etc/supervisor/supervisord.conf
         nginx -g "daemon off;"
     ;;
     bash )
         bash "${@:2}"
+    ;;
+    help)
+        show_help
     ;;
     *)
         show_help
